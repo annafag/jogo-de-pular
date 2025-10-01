@@ -1,60 +1,78 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+const player = document.getElementById("player");
+const obstacle = document.getElementById("obstacle");
+const gameArea = document.getElementById("gameArea");
+const scoreElement = document.getElementById("score");
+
+let isJumping = false;
+let jumpHeight = 150;  // Altura do pulo
+let jumpSpeed = 20;    // Velocidade de subida e descida
+let obstacleSpeed = 5; // Velocidade do obstáculo
+let score = 0;
+
+function jump() {
+    if (isJumping) return;
+
+    isJumping = true;
+    let jumpUpInterval = setInterval(() => {
+        let playerBottom = parseInt(player.style.bottom);
+        if (playerBottom < jumpHeight) {
+            player.style.bottom = playerBottom + 5 + 'px';
+        } else {
+            clearInterval(jumpUpInterval);
+            let fallInterval = setInterval(() => {
+                if (parseInt(player.style.bottom) > 0) {
+                    player.style.bottom = parseInt(player.style.bottom) - 5 + 'px';
+                } else {
+                    clearInterval(fallInterval);
+                    isJumping = false;
+                }
+            }, jumpSpeed);
+        }
+    }, jumpSpeed);
 }
 
-body {
-    font-family: Arial, sans-serif;
-    background-color: #87CEEB; /* Céu azul */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    overflow: hidden;
+function moveObstacle() {
+    let obstaclePosition = parseInt(obstacle.style.right);
+
+    if (obstaclePosition > gameArea.clientWidth) {
+        
+        obstacle.style.right = '-30px';
+        score++;
+        scoreElement.textContent = score;
+    } else {
+        obstacle.style.right = obstaclePosition + obstacleSpeed + 'px';
+    }
+
+    if (obstaclePosition > 50 && obstaclePosition < 90 && parseInt(player.style.bottom) < 40) {
+        
+        clearInterval(obstacleInterval);
+        alert("Game Over! Sua pontuação foi: " + score);
+        location.reload(); // Reinicia o jogo
+    }
 }
 
-.game-container {
-    text-align: center;
-    max-width: 600px;
-    width: 100%;
+function increaseDifficulty() {
+    if (score % 5 === 0) {
+        obstacleSpeed += 1;  // Aumenta a velocidade do obstáculo a cada 5 pontos
+    }
 }
 
-h1 {
-    color: #333;
-    margin-bottom: 20px;
+function startGame() {
+    player.style.bottom = '0px'; // Coloca o player de volta ao chão
+    obstacle.style.right = '-30px'; // Coloca o obstáculo fora da tela
+    score = 0;
+    scoreElement.textContent = score;
+    obstacleSpeed = 5;
+    
+    obstacleInterval = setInterval(moveObstacle, 20);
+    // Aumenta a dificuldade do jogo
+    setInterval(increaseDifficulty, 1000);
 }
 
-p {
-    font-size: 18px;
-    color: #333;
-}
+document.addEventListener("keydown", function (e) {
+    if (e.key === " " || e.key === "Spacebar") {
+        jump();
+    }
+});
 
-#gameArea {
-    width: 100%;
-    height: 300px;
-    position: relative;
-    background-color: #228B22; /* Cor da grama */
-    border: 3px solid #000;
-    overflow: hidden;
-}
-
-#player {
-    width: 40px;
-    height: 40px;
-    background-color: #FF6347; /* Cor do personagem */
-    position: absolute;
-    bottom: 0;
-    left: 50px;
-    border-radius: 5px;
-}
-
-#obstacle {
-    width: 30px;
-    height: 30px;
-    background-color: #8B0000; /* Cor do obstáculo */
-    position: absolute;
-    bottom: 0;
-    right: -30px; /* Inicialmente fora da tela */
-    border-radius: 5px;
-}
+startGame();
