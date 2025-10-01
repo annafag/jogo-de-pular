@@ -1,21 +1,28 @@
-// Variáveis do jogo
 const player = document.getElementById("player");
 const obstacle = document.getElementById("obstacle");
 const gameArea = document.getElementById("gameArea");
+const scoreElement = document.getElementById("score");
 
 let isJumping = false;
 let gravity = 0.9;
 let jumpHeight = 15;
 let obstacleSpeed = 5;
 let score = 0;
+let jumpHeightCurrent = 0;
+let obstaclePosition = 0;
+let gameInterval;
+let obstacleInterval;
 
-// Função para pular
 function jump() {
     if (isJumping) return;
 
     isJumping = true;
+    jumpHeightCurrent = 0;
     let jumpUpInterval = setInterval(() => {
-        if (parseInt(player.style.bottom) < 150) {
+        if (jumpHeightCurrent < 150) {
+            player.style.bottom = parseInt(player.style.bottom) + 5 + 'px';
+            jumpHeightCurrent += 5;
+        } else {
             clearInterval(jumpUpInterval);
             let fallInterval = setInterval(() => {
                 if (parseInt(player.style.bottom) > 0) {
@@ -25,43 +32,45 @@ function jump() {
                     isJumping = false;
                 }
             }, 20);
-        } else {
-            player.style.bottom = parseInt(player.style.bottom) + 5 + 'px';
         }
     }, 20);
 }
 
-// Função para mover o obstáculo
 function moveObstacle() {
-    let obstaclePosition = parseInt(obstacle.style.right);
+    obstaclePosition = parseInt(obstacle.style.right);
 
     if (obstaclePosition > gameArea.clientWidth) {
-        // Reseta o obstáculo
+        
         obstacle.style.right = '-30px';
         score++;
-        console.log("Pontos: " + score); // Exibe os pontos no console
+        scoreElement.textContent = score;
     } else {
         obstacle.style.right = obstaclePosition + obstacleSpeed + 'px';
     }
 
-    // Verificar colisão
     if (obstaclePosition > 50 && obstaclePosition < 90 && parseInt(player.style.bottom) < 40) {
         // Colisão detectada
+        clearInterval(obstacleInterval);
         alert("Game Over! Sua pontuação foi: " + score);
         location.reload(); // Reinicia o jogo
     }
 }
 
-// Inicia o movimento do obstáculo a cada intervalo
-setInterval(moveObstacle, 20);
+function increaseDifficulty() {
+    if (score % 5 === 0) {
+        obstacleSpeed += 1;  // Aumenta a velocidade a cada 5 pontos
+    }
+}
 
-// Detecta quando a tecla de espaço é pressionada
+obstacleInterval = setInterval(moveObstacle, 20);
+
+gameInterval = setInterval(increaseDifficulty, 1000);
+
 document.addEventListener("keydown", function (e) {
     if (e.key === " " || e.key === "Spacebar") {
         jump();
     }
 });
 
-// Configura o estilo inicial do player e do obstáculo
 player.style.bottom = '0px';
 obstacle.style.right = '-30px';
